@@ -1,0 +1,220 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: fitfashion-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: fitfashion_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: postgres -c shared_buffers=256MB -c max_connections=200
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d fitfashion_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fitfashion-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fitfashion-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: fitfashion-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: fitfashion-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+
+  api_gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    container_name: fitfashion-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      KAFKA_BROKER: kafka:29092           
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672  
+    depends_on:
+      - kafka
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+    volumes:
+      - ./api_gateway:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./FrontFitFashion
+      dockerfile: Dockerfile
+    container_name: fitfashion-frontend
+    ports:
+      - "5173:80"
+    environment:
+      VITE_GATEWAY_URL: http://localhost:3000
+    depends_on:
+      - api_gateway
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+    volumes:
+      - ./FrontFitFashion/src:/app/src
+
+  ms_products:
+    build:
+      context: ./ms_products
+      dockerfile: Dockerfile
+    container_name: fitfashion-ms-products
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: postgres                
+      DB_PORT: 5432
+      DB_USERNAME: admin
+      DB_PASSWORD: password123
+      DB_NAME: fitfashion_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672 
+      RABBITMQ_QUEUE: products_queue
+      CLOUDINARY_CLOUD_NAME: dorwhkhnd
+      CLOUDINARY_API_KEY: 333293511614139
+      CLOUDINARY_API_SECRET: eKYClmpa4AFLiX1AJAODctKM528
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+    volumes:
+      - ./ms_products:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+  ms_cart:
+    build:
+      context: ./ms_cart
+      dockerfile: Dockerfile
+    container_name: fitfashion-ms-cart
+    ports:
+      - "8081:8080"                     
+    environment:
+      SERVER_PORT: 8080
+      FRONTEND_URL: http://localhost:5173
+      DB_HOST: postgres                  
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: password123
+      DB_NAME: fitfashion_db
+      DB_SSLMODE: disable
+      DB_TIMEZONE: America/Santiago
+      REDIS_ADDR: redis:6379            
+      REDIS_PASSWORD: ""
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672  
+      RPC_QUEUE_NAME: cart_rpc_queue
+      MP_ACCESS_TOKEN: tu_access_token_de_mercado_pago
+      WEBHOOK_BASE_URL: https://tu-url-ngrok.com
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+
+  ms_auth:
+    build:
+      context: ./ms_auth
+      dockerfile: Dockerfile
+    container_name: fitfashion-ms-auth
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: tu_clave_secreta
+      DEBUG: "False"
+      KAFKA_BROKER: kafka:29092           
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: fitfashion_db
+      DB_USER: admin
+      DB_PASSWORD: password123
+      DB_HOST: postgres                  
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - fitfashion_network
+    volumes:
+      - ./ms_auth:/app
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  fitfashion_network:
+    driver: bridge

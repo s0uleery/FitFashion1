@@ -1,0 +1,38 @@
+import { IsString, IsNumber, IsArray, ValidateNested, IsOptional, Min, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateProductDto {
+  @IsString()
+  name: string;
+
+  @IsInt({ message: 'El precio debe ser un número entero' }) 
+  @Min(0)
+  price: number;
+
+  @IsInt({ message: "El stock debe ser un número entero" })
+  @Min(0, { message: "El stock no puede ser negativo" })
+  stock: number;
+
+  @IsString()
+  description: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  categories: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  styles: string[];
+
+  @IsNumber()
+  @IsOptional()
+  layerIndex?: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  galleryImages: string[];
+
+  @IsString()
+  builderImage: string;
+
+}
