@@ -1,0 +1,54 @@
+import { Routes, Route } from 'react-router-dom'
+import './App.css'
+import Navbar from './components/Navbar'
+import CartSidebar from './components/CartSidebar'
+import Home from './views/Home'
+import Login from './views/Login'
+import Profile from './views/Profile'
+import AdminUsers from './views/admin/AdminUsers'
+import { useCart } from './store/CartContext.jsx'
+import { useUser } from './store/UserContext.jsx'
+import OrderSuccess from './views/OrderSuccess.jsx'
+import OrderFailed from './views/OrderFailed.jsx'
+import Checkout from './views/Checkout.jsx'
+import OrderHistory from './views/OrderHistory.jsx'
+import ProductDetail from './views/ProductDetail.jsx'
+import AdminCreateProduct from './views/admin/AdminCreateProduct.jsx'
+import AdminDashboard from './views/admin/AdminDashboard.jsx'
+import AdminCreateUser from './views/admin/AdminCreateUser.jsx'
+
+function App() {
+  const { user, loading } = useUser()
+  const { isCartOpen, closeCart } = useCart()
+
+  if (loading) return <div>Cargando...</div>;
+
+  return (
+    <>
+      <Navbar />
+      <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/ingresar" element={<Login />} />
+        <Route path="/entrar" element={<Login />} />
+        <Route path="/profile" element={<Profile />} />
+        {(user?.role === 'ADMIN' || user?.role === 'GESTOR') && (
+          <>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/create-product" element={<AdminCreateProduct />} />
+            <Route path="/admin/create-user" element={<AdminCreateUser />} />
+          </>
+        )}
+        <Route path="*" element={<h2>Página no encontrada</h2>} />
+        <Route path="/success" element={<OrderSuccess />} />
+        <Route path="/failed" element={<OrderFailed />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/orderhistory" element={<OrderHistory />} />
+        <Route path="/productdetail/:id" element={<ProductDetail />} />
+      </Routes>
+    </>
+  )
+}
+
+export default App
