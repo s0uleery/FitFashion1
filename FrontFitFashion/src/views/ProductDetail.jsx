@@ -160,12 +160,7 @@ const ProductDetail = () => {
                     </div>
                 </div>
 
-                {/* SECCIÓN DEL MANIQUÍ VIRTUAL */}
-                <div className="maniqui" style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gridColumn: '1 / -1' }}>
-                    <h2>Probador Virtual</h2>
-                    <p>Así se ve esta prenda:</p>
-                    <Maniqui cartItems={[producto]} />
-                </div>
+                
             </div>
         </div>
     );
