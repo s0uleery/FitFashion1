@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../store/CartContext';
 import { productService } from '../services/products.service';
+import Maniqui from '../components/maniqui';
 import './styles/ProductDetail.css';
 
 const ProductDetail = () => {
@@ -70,17 +71,17 @@ const ProductDetail = () => {
             <div className="detail-card">
                 {/* COLUMNA IZQUIERDA: IMÁGENES */}
                 <div className="image-section">
-                    
+
                     {/* Imagen Principal con Flechas */}
                     <div className="main-image-container">
                         {displayImages.length > 1 && (
                             <button className="nav-btn prev" onClick={prevImage}>❮</button>
                         )}
-                        
-                        <img 
-                            src={currentImageSrc} 
-                            alt={producto.name} 
-                            className="main-image" 
+
+                        <img
+                            src={currentImageSrc}
+                            alt={producto.name}
+                            className="main-image"
                         />
 
                         {displayImages.length > 1 && (
@@ -92,10 +93,10 @@ const ProductDetail = () => {
                     {displayImages.length > 1 && (
                         <div className="thumbnails-row">
                             {displayImages.map((imgUrl, index) => (
-                                <img 
-                                    key={index} 
-                                    src={imgUrl} 
-                                    alt={`vista ${index}`} 
+                                <img
+                                    key={index}
+                                    src={imgUrl}
+                                    alt={`vista ${index}`}
                                     className={`thumbnail ${index === currentIndex ? 'active' : ''}`}
                                     onClick={() => setCurrentIndex(index)}
                                 />
@@ -108,7 +109,7 @@ const ProductDetail = () => {
                 <div className="info-section">
                     <h1 className="detail-title">{producto.name}</h1>
                     <div className="price-tag">${producto.price.toLocaleString('es-CL')}</div>
-                    
+
                     <div className="divider"></div>
 
                     <div className="product-specs">
@@ -146,9 +147,9 @@ const ProductDetail = () => {
                                     <span>{quantity}</span>
                                     <button onClick={() => setQuantity(Math.min(producto.stock, quantity + 1))}>+</button>
                                 </div>
-                                
-                                <button 
-                                    className="add-cart-large" 
+
+                                <button
+                                    className="add-cart-large"
                                     onClick={handleAddToCart}
                                 >
                                     Añadir al Carrito
@@ -156,6 +157,13 @@ const ProductDetail = () => {
                             </div>
                         )}
                     </div>
+                </div>
+
+                {/* SECCIÓN DEL MANIQUÍ VIRTUAL */}
+                <div className="maniqui" style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h2>Probador Virtual</h2>
+                    <p>Así se ve esta prenda:</p>
+                    <Maniqui cartItems={[producto]} />
                 </div>
             </div>
         </div>
