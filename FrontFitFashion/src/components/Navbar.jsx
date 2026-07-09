@@ -18,6 +18,7 @@ const Navbar = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();
 
+
     useEffect(() => {
         const query = searchParams.get("q") || "";
         setSearchTerm(query);
@@ -57,7 +58,9 @@ const Navbar = () => {
     const navigateToHistory = () => {
         navigate("/orderhistory");
     }
-
+    const navigateToProbador = () => {
+        navigate("/probador");
+    }
     const doLogout = async () => {
         const token = localStorage.getItem("user");
         if (token) {
@@ -124,6 +127,7 @@ const Navbar = () => {
                     </button>
                 )}
 
+                <button onClick={navigateToProbador}>Probador Virtual</button>
                 <button onClick={navigateToHistory}>Mis Pedidos</button>
 
                 <button onClick={openCart} className="cart-button">

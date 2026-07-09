@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { useCart } from '../store/CartContext';
 import { productService } from '../services/products.service';
 import Maniqui from '../components/maniqui';
 import './styles/ProductDetail.css';
+import { useParams} from 'react-router-dom';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -16,6 +16,7 @@ const ProductDetail = () => {
     // Usamos índice en lugar de URL directa para facilitar la navegación con flechas
     const [currentIndex, setCurrentIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
+
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -160,7 +161,7 @@ const ProductDetail = () => {
                 </div>
 
                 {/* SECCIÓN DEL MANIQUÍ VIRTUAL */}
-                <div className="maniqui" style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div className="maniqui" style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gridColumn: '1 / -1' }}>
                     <h2>Probador Virtual</h2>
                     <p>Así se ve esta prenda:</p>
                     <Maniqui cartItems={[producto]} />

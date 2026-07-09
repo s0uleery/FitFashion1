@@ -223,7 +223,24 @@
 .add-cart-large:active {
     transform: scale(0.98);
 }
+.probador-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background-color: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
 
+.probador-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
 /* Responsive para celular */
 @media (max-width: 768px) {
     .detail-card {

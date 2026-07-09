@@ -16,6 +16,7 @@ import ProductDetail from './views/ProductDetail.jsx'
 import AdminCreateProduct from './views/admin/AdminCreateProduct.jsx'
 import AdminDashboard from './views/admin/AdminDashboard.jsx'
 import AdminCreateUser from './views/admin/AdminCreateUser.jsx'
+import Probador from './views/Probador.jsx'
 
 function App() {
   const { user, loading } = useUser()
@@ -46,6 +47,7 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/orderhistory" element={<OrderHistory />} />
         <Route path="/productdetail/:id" element={<ProductDetail />} />
+        <Route path="/probador" element={<Probador />} />
       </Routes>
     </>
   )
