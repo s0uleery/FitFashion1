@@ -10,10 +10,8 @@ const Probador = () => {
     const [prendasEnManiqui, setPrendasEnManiqui] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    
     // Trae el detalle completo (incluye builderImage) de cada producto del carrito
     useEffect(() => {
-        console.log('Items del carrito:', items);
         const fetchDetails = async () => {
             if (!items || items.length === 0) {
                 setProductosCarrito([]);
@@ -35,8 +33,25 @@ const Probador = () => {
         fetchDetails();
     }, [items]);
 
-    const handleDragStart = (e, producto) => {
-        e.dataTransfer.setData('application/json', JSON.stringify(producto));
+    // origen: 'carrito' (viene de la lista) o 'maniqui' (ya está puesta y se está reposicionando)
+    const handleDragStart = (e, producto, origen = 'carrito', offset = { x: 0, y: 0 }) => {
+        e.dataTransfer.setData(
+            'application/json',
+            JSON.stringify({ producto, origen, offset })
+        );
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    // Drag de una prenda que YA está puesta en el maniquí (para reposicionarla).
+    // Calculamos el offset entre el punto donde el usuario clickeó y la esquina
+    // superior izquierda de la prenda, para que no "salte" al soltar.
+    const handleDragStartPrenda = (e, prenda) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offset = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        };
+        handleDragStart(e, prenda, 'maniqui', offset);
     };
 
     const handleDragOver = (e) => {
@@ -47,11 +62,20 @@ const Probador = () => {
         e.preventDefault();
         const data = e.dataTransfer.getData('application/json');
         if (!data) return;
-        const producto = JSON.parse(data);
 
+        const { producto, origen, offset } = JSON.parse(data);
         const stage = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - stage.left - 75; // centra aprox. el ancho de la prenda
-        const y = e.clientY - stage.top - 75;
+
+        let x, y;
+        if (origen === 'maniqui') {
+            // Reposicionar manteniendo el punto exacto donde se agarró la prenda
+            x = e.clientX - stage.left - offset.x;
+            y = e.clientY - stage.top - offset.y;
+        } else {
+            // Viene del carrito: centrar aprox. la prenda en el cursor
+            x = e.clientX - stage.left - 75;
+            y = e.clientY - stage.top - 75;
+        }
 
         setPrendasEnManiqui((prev) => {
             const yaExiste = prev.some((p) => p.id === producto.id);
@@ -89,8 +113,10 @@ const Probador = () => {
                             alt={prenda.name}
                             className="probador-prenda"
                             style={{ left: prenda.x, top: prenda.y }}
+                            draggable
+                            onDragStart={(e) => handleDragStartPrenda(e, prenda)}
                             onDoubleClick={() => quitarPrenda(prenda.id)}
-                            title="Doble click para quitar"
+                            title="Arrastra para mover, doble click para quitar"
                         />
                     ))}
                 </div>
@@ -111,7 +137,7 @@ const Probador = () => {
                                 key={producto.id}
                                 className="probador-item"
                                 draggable
-                                onDragStart={(e) => handleDragStart(e, producto)}
+                                onDragStart={(e) => handleDragStart(e, producto, 'carrito')}
                             >
                                 <img src={producto.builderImage} alt={producto.name} />
                                 <span>{producto.name}</span>
