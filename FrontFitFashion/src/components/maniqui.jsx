@@ -1,18 +1,17 @@
 import './styles/maniqui.css';
-import maniquiImagen from '../assets/maniqui-base.png';
+import maniquiImagen from '../assets/Maniqui.png';
 
 const Maniqui = ({ cartItems }) => {
     return (
         <div className="cuarto-virtual">
             <div className="maniqui-contenedor">
-                //capa 1 base maniqui
-                <img
-                    src="../assets/maniqui-base.png" //ruta donde tenemos q poner las fotos
-                    alt="Maniquí base"
-                    className="maniqui-base"
-                />
 
-                // Ropa
+                <img
+                    src={maniquiImagen} 
+                    alt="Maniqui" 
+                    className="maniqui-base" />
+
+                
                 {cartItems.map((item) => (
                     <img
                         key={item.id}
